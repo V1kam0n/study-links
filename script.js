@@ -1,39 +1,78 @@
+// Load saved links or create empty array
 let links = JSON.parse(localStorage.getItem("links")) || [];
 
-// Load saved links when page opens
+// Run when page loads
 window.onload = function () {
-    links.forEach(link => createLink(link.title, link.url, link.subject));
+    const list = document.getElementById("list");
+    const filter = document.getElementById("filter");
+    const subjects = new Set();
+
+    list.innerHTML = "";
+
+    links.forEach((link, index) => {
+        subjects.add(link.subject);
+        createLink(link.title, link.url, link.subject, index);
+    });
+
+    // Fill filter dropdown
+    subjects.forEach(subject => {
+        const option = document.createElement("option");
+        option.value = subject;
+        option.textContent = subject;
+        filter.appendChild(option);
+    });
 };
 
+// Add new link
 function addLink() {
     const title = document.getElementById("title").value;
     const url = document.getElementById("url").value;
     const subject = document.getElementById("subject").value;
 
-    if (title === "" || url === "") {
-        alert("Please fill in title and URL");
+    if (title === "" || url === "" || subject === "") {
+        alert("Please fill in all fields");
         return;
     }
 
-    const link = { title, url, subject };
-    links.push(link);
+    links.push({ title, url, subject });
     localStorage.setItem("links", JSON.stringify(links));
 
-    createLink(title, url, subject);
-
-    document.getElementById("title").value = "";
-    document.getElementById("url").value = "";
-    document.getElementById("subject").value = "";
+    location.reload(); // refresh UI
 }
 
-function createLink(title, url, subject) {
+// Create link card
+function createLink(title, url, subject, index) {
     const li = document.createElement("li");
-    const a = document.createElement("a");
 
+    const a = document.createElement("a");
     a.textContent = `${title} (${subject})`;
     a.href = url;
     a.target = "_blank";
 
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "❌";
+
+    delBtn.onclick = function () {
+        links.splice(index, 1);
+        localStorage.setItem("links", JSON.stringify(links));
+        location.reload();
+    };
+
     li.appendChild(a);
+    li.appendChild(delBtn);
     document.getElementById("list").appendChild(li);
+}
+
+// Filter by subject
+function filterLinks() {
+    const selected = document.getElementById("filter").value;
+    const list = document.getElementById("list");
+
+    list.innerHTML = "";
+
+    links.forEach((link, index) => {
+        if (selected === "all" || link.subject === selected) {
+            createLink(link.title, link.url, link.subject, index);
+        }
+    });
 }
