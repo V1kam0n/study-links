@@ -44,10 +44,9 @@ li {
     align-items: center;
 }
 
-a {
-    text-decoration: none;
-    color: #333;
+a, span {
     font-weight: bold;
+    color: #333;
 }
 
 a:hover {

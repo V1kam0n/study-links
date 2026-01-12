@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Study Links</title>
-
-    <!-- Mobile support -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- PWA -->
+    <!-- PWA manifest -->
     <link rel="manifest" href="manifest.json">
 
     <link rel="stylesheet" href="style.css">
@@ -16,16 +14,25 @@
 
     <h1>📚 My Study Links</h1>
 
-    <input id="title" placeholder="Title (e.g. Math Notes)">
+    <!-- Input fields -->
+    <input id="title" placeholder="Title (e.g. Algebra Basics)">
     <input id="url" placeholder="URL (https://...)">
-    <input id="subject" placeholder="Subject (e.g. Math, CS)">
+    <input id="subject" placeholder="Subject (e.g. Math)">
+    <input id="subtopic" placeholder="Subtopic (e.g. Algebra)">
 
     <button onclick="addLink()">Add Link</button>
 
-    <select id="filter" onchange="filterLinks()">
+    <!-- Filters -->
+    <h3>Filter by:</h3>
+    <select id="subjectFilter" onchange="filterLinks()">
         <option value="all">All Subjects</option>
     </select>
 
+    <select id="subtopicFilter" onchange="filterLinks()">
+        <option value="all">All Subtopics</option>
+    </select>
+
+    <!-- List of links -->
     <ul id="list"></ul>
 
     <script src="script.js"></script>

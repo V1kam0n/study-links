@@ -1,26 +1,10 @@
-// Load saved links or create empty array
+// Load saved links or empty array
 let links = JSON.parse(localStorage.getItem("links")) || [];
 
-// Run when page loads
-window.onload = function () {
-    const list = document.getElementById("list");
-    const filter = document.getElementById("filter");
-    const subjects = new Set();
-
-    list.innerHTML = "";
-
-    links.forEach((link, index) => {
-        subjects.add(link.subject);
-        createLink(link.title, link.url, link.subject, index);
-    });
-
-    // Fill filter dropdown
-    subjects.forEach(subject => {
-        const option = document.createElement("option");
-        option.value = subject;
-        option.textContent = subject;
-        filter.appendChild(option);
-    });
+// On page load
+window.onload = function() {
+    fillFilters();
+    displayLinks();
 };
 
 // Add new link
@@ -28,80 +12,109 @@ function addLink() {
     const title = document.getElementById("title").value;
     const url = document.getElementById("url").value;
     const subject = document.getElementById("subject").value;
+    const subtopic = document.getElementById("subtopic").value;
 
-    if (title === "" || url === "" || subject === "") {
-        alert("Please fill in all fields");
+    if (!title || !url || !subject || !subtopic) {
+        alert("Please fill all fields");
         return;
     }
 
-    links.push({ title, url, subject });
+    links.push({ title, url, subject, subtopic });
     localStorage.setItem("links", JSON.stringify(links));
 
-    location.reload(); // refresh UI
+    // Clear inputs
+    document.getElementById("title").value = "";
+    document.getElementById("url").value = "";
+    document.getElementById("subject").value = "";
+    document.getElementById("subtopic").value = "";
+
+    fillFilters();
+    displayLinks();
 }
 
-// Create link card
-function createLink(title, url, subject, index) {
-    const li = document.createElement("li");
+// Fill filter dropdowns
+function fillFilters() {
+    const subjectFilter = document.getElementById("subjectFilter");
+    const subtopicFilter = document.getElementById("subtopicFilter");
 
-    const a = document.createElement("a");
-    a.textContent = `${title} (${subject})`;
-    a.href = url;
-    a.target = "_blank";
+    // Clear except "all"
+    subjectFilter.innerHTML = '<option value="all">All Subjects</option>';
+    subtopicFilter.innerHTML = '<option value="all">All Subtopics</option>';
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "❌";
+    const subjects = new Set();
+    const subtopics = new Set();
 
-    delBtn.onclick = function () {
-        links.splice(index, 1);
-        localStorage.setItem("links", JSON.stringify(links));
-        location.reload();
-    };
+    links.forEach(link => {
+        subjects.add(link.subject);
+        subtopics.add(link.subtopic);
+    });
 
-    li.appendChild(a);
-    li.appendChild(delBtn);
-    document.getElementById("list").appendChild(li);
+    subjects.forEach(s => {
+        const option = document.createElement("option");
+        option.value = s;
+        option.textContent = s;
+        subjectFilter.appendChild(option);
+    });
+
+    subtopics.forEach(s => {
+        const option = document.createElement("option");
+        option.value = s;
+        option.textContent = s;
+        subtopicFilter.appendChild(option);
+    });
 }
 
-// Filter by subject
-function filterLinks() {
+// Display links with nested if–else filters
+function displayLinks() {
+    const list = document.getElementById("list");
     const subjectSelected = document.getElementById("subjectFilter").value;
     const subtopicSelected = document.getElementById("subtopicFilter").value;
-    const list = document.getElementById("list");
 
     list.innerHTML = "";
 
     links.forEach((link, index) => {
-
-        //  FIRST FILTER: SUBJECT
+        // Nested if–else
         if (subjectSelected === "all") {
-
-            //  SECOND FILTER: SUBTOPIC
             if (subtopicSelected === "all") {
-                createLink(link.title, link.url, link.subject, index);
-
+                createLink(link, index);
             } else {
                 if (link.subtopic === subtopicSelected) {
-                    createLink(link.title, link.url, link.subject, index);
+                    createLink(link, index);
                 }
             }
-
         } else {
-
             if (link.subject === subjectSelected) {
-
-                //  SECOND FILTER: SUBTOPIC
                 if (subtopicSelected === "all") {
-                    createLink(link.title, link.url, link.subject, index);
-
+                    createLink(link, index);
                 } else {
                     if (link.subtopic === subtopicSelected) {
-                        createLink(link.title, link.url, link.subject, index);
+                        createLink(link, index);
                     }
                 }
-
             }
         }
-
     });
+}
+
+// Create a link element
+function createLink(link, index) {
+    const li = document.createElement("li");
+
+    const a = document.createElement("a");
+    a.href = link.url;
+    a.target = "_blank";
+    a.textContent = `${link.title} (${link.subject} - ${link.subtopic})`;
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "❌";
+    delBtn.onclick = function() {
+        links.splice(index, 1);
+        localStorage.setItem("links", JSON.stringify(links));
+        fillFilters();
+        displayLinks();
+    };
+
+    li.appendChild(a);
+    li.appendChild(delBtn);
+    list.appendChild(li);
 }
