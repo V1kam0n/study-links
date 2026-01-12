@@ -65,23 +65,41 @@ function createLink(title, url, subject, index) {
 
 // Filter by subject
 function filterLinks() {
-    const selected = document.getElementById("filter").value;
+    const subjectSelected = document.getElementById("subjectFilter").value;
+    const subtopicSelected = document.getElementById("subtopicFilter").value;
     const list = document.getElementById("list");
 
-    list.innerHTML = ""; // clear old links
+    list.innerHTML = "";
 
     links.forEach((link, index) => {
 
-        //  NESTED IF–ELSE 
-        if (selected === "all") {
-            createLink(link.title, link.url, link.subject, index);
+        //  FIRST FILTER: SUBJECT
+        if (subjectSelected === "all") {
 
-        } else {
-            if (link.subject === selected) {
+            //  SECOND FILTER: SUBTOPIC
+            if (subtopicSelected === "all") {
                 createLink(link.title, link.url, link.subject, index);
 
             } else {
-                // do nothing 
+                if (link.subtopic === subtopicSelected) {
+                    createLink(link.title, link.url, link.subject, index);
+                }
+            }
+
+        } else {
+
+            if (link.subject === subjectSelected) {
+
+                //  SECOND FILTER: SUBTOPIC
+                if (subtopicSelected === "all") {
+                    createLink(link.title, link.url, link.subject, index);
+
+                } else {
+                    if (link.subtopic === subtopicSelected) {
+                        createLink(link.title, link.url, link.subject, index);
+                    }
+                }
+
             }
         }
 
