@@ -68,11 +68,22 @@ function filterLinks() {
     const selected = document.getElementById("filter").value;
     const list = document.getElementById("list");
 
-    list.innerHTML = "";
+    list.innerHTML = ""; // clear old links
 
     links.forEach((link, index) => {
-        if (selected === "all" || link.subject === selected) {
+
+        //  NESTED IF–ELSE 
+        if (selected === "all") {
             createLink(link.title, link.url, link.subject, index);
+
+        } else {
+            if (link.subject === selected) {
+                createLink(link.title, link.url, link.subject, index);
+
+            } else {
+                // do nothing 
+            }
         }
+
     });
 }
