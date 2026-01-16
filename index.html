@@ -25,36 +25,16 @@
   const db = firebase.firestore();
 </script>
 
-<div class="app">
-
-    <!-- ADMIN LOGIN -->
-    <section id="loginCard" class="card">
-        <h2>Admin Login</h2>
-        <input id="adminEmail" type="email" placeholder="Admin email">
-        <input id="adminPassword" type="password" placeholder="Password">
-        <button onclick="loginAdmin()">Login</button>
-    </section>
+<!-- ========== USER INTERFACE ========== -->
+<section id="userUI">
 
     <header>
         <h1>📚 Study Links</h1>
         <p>Browse and filter study resources</p>
     </header>
 
-    <!-- ADD LINK (ADMIN ONLY) -->
-    <section class="card add-section" style="display:none;">
-        <h2>Add Link</h2>
-        <input id="title" placeholder="Title">
-        <input id="url" placeholder="URL">
-        <input id="subject" placeholder="Subject">
-        <input id="subtopic" placeholder="Subtopic">
-        <button onclick="addLink()">Add</button>
-        <button onclick="logoutAdmin()">Logout</button>
-    </section>
-
     <!-- FILTERS -->
     <section class="card">
-        <h2>Filter</h2>
-
         <input id="searchInput" placeholder="Search..." oninput="applyFilters()">
 
         <select id="subjectFilter" onchange="applyFilters()">
@@ -68,11 +48,34 @@
 
     <!-- LINKS -->
     <section class="card">
-        <h2>Links</h2>
         <ul id="list"></ul>
     </section>
 
-</div>
+</section>
+
+<!-- ========== ADMIN INTERFACE ========== -->
+<section id="adminUI" style="display:none;">
+
+    <section id="loginCard" class="card">
+        <h2>Admin Login</h2>
+        <input id="adminEmail" type="email" placeholder="Admin email">
+        <input id="adminPassword" type="password" placeholder="Password">
+        <button onclick="loginAdmin()">Login</button>
+    </section>
+
+    <section id="adminPanel" class="card" style="display:none;">
+        <h2>Admin Panel</h2>
+
+        <input id="title" placeholder="Title">
+        <input id="url" placeholder="URL">
+        <input id="subject" placeholder="Subject">
+        <input id="subtopic" placeholder="Subtopic">
+
+        <button onclick="addLink()">Add Link</button>
+        <button onclick="logoutAdmin()">Logout</button>
+    </section>
+
+</section>
 
 <script src="script.js"></script>
 </body>
