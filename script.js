@@ -1,120 +1,111 @@
-// Load saved links or empty array
-let links = JSON.parse(localStorage.getItem("links")) || [];
+let isAdmin = false;
+let links = [];
 
-// On page load
-window.onload = function() {
-    fillFilters();
-    displayLinks();
-};
+// LOGIN (TEMP – DEMO ONLY)
+function loginAdmin() {
+    const pass = document.getElementById("adminPassword").value;
 
-// Add new link
+    if (pass === "1234") {
+        isAdmin = true;
+        document.getElementById("loginCard").style.display = "none";
+        document.querySelector(".add-section").style.display = "block";
+        alert("Admin mode enabled");
+    } else {
+        alert("Wrong password");
+    }
+}
+
+// ADD LINK
 function addLink() {
+    if (!isAdmin) return;
+
     const title = document.getElementById("title").value;
     const url = document.getElementById("url").value;
     const subject = document.getElementById("subject").value;
     const subtopic = document.getElementById("subtopic").value;
 
-    if (!title || !url || !subject || !subtopic) {
-        alert("Please fill all fields");
-        return;
-    }
+    if (!title || !url) return;
 
-    links.push({ title, url, subject, subtopic });
-    localStorage.setItem("links", JSON.stringify(links));
+    db.collection("links").add({
+        title,
+        url,
+        subject,
+        subtopic,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-    // Clear inputs
-    document.getElementById("title").value = "";
-    document.getElementById("url").value = "";
-    document.getElementById("subject").value = "";
-    document.getElementById("subtopic").value = "";
-
-    fillFilters();
-    displayLinks();
+    clearInputs();
 }
 
-// Fill filter dropdowns
-function fillFilters() {
-    const subjectFilter = document.getElementById("subjectFilter");
-    const subtopicFilter = document.getElementById("subtopicFilter");
+// REALTIME LOAD
+db.collection("links").orderBy("createdAt", "desc")
+  .onSnapshot(snapshot => {
+      links = [];
+      snapshot.forEach(doc => {
+          links.push({ id: doc.id, ...doc.data() });
+      });
+      displayLinks();
+  });
 
-    // Clear except "all"
-    subjectFilter.innerHTML = '<option value="all">All Subjects</option>';
-    subtopicFilter.innerHTML = '<option value="all">All Subtopics</option>';
-
-    const subjects = new Set();
-    const subtopics = new Set();
-
-    links.forEach(link => {
-        subjects.add(link.subject);
-        subtopics.add(link.subtopic);
-    });
-
-    subjects.forEach(s => {
-        const option = document.createElement("option");
-        option.value = s;
-        option.textContent = s;
-        subjectFilter.appendChild(option);
-    });
-
-    subtopics.forEach(s => {
-        const option = document.createElement("option");
-        option.value = s;
-        option.textContent = s;
-        subtopicFilter.appendChild(option);
-    });
-}
-
-// Display links with nested if–else filters
-function displayLinks() {
+// DISPLAY
+function displayLinks(filtered = links) {
     const list = document.getElementById("list");
-    const subjectSelected = document.getElementById("subjectFilter").value;
-    const subtopicSelected = document.getElementById("subtopicFilter").value;
-
     list.innerHTML = "";
 
-    links.forEach((link, index) => {
-        // Nested if–else
-        if (subjectSelected === "all") {
-            if (subtopicSelected === "all") {
-                createLink(link, index);
-            } else {
-                if (link.subtopic === subtopicSelected) {
-                    createLink(link, index);
-                }
-            }
-        } else {
-            if (link.subject === subjectSelected) {
-                if (subtopicSelected === "all") {
-                    createLink(link, index);
-                } else {
-                    if (link.subtopic === subtopicSelected) {
-                        createLink(link, index);
-                    }
-                }
-            }
+    filtered.forEach(link => {
+        const li = document.createElement("li");
+
+        const a = document.createElement("a");
+        a.href = link.url;
+        a.target = "_blank";
+        a.textContent = `${link.title} (${link.subject} - ${link.subtopic})`;
+
+        li.appendChild(a);
+
+        if (isAdmin) {
+            const del = document.createElement("button");
+            del.textContent = "❌";
+            del.onclick = () => {
+                db.collection("links").doc(link.id).delete();
+            };
+            li.appendChild(del);
         }
+
+        list.appendChild(li);
     });
+
+    updateFilters();
 }
 
-// Create a link element
-function createLink(link, index) {
-    const li = document.createElement("li");
+// FILTER
+function filterLinks() {
+    let result = links;
+    if (subjectFilter.value !== "all") {
+        result = result.filter(l => l.subject === subjectFilter.value);
+    }
+    if (subtopicFilter.value !== "all") {
+        result = result.filter(l => l.subtopic === subtopicFilter.value);
+    }
+    displayLinks(result);
+}
 
-    const a = document.createElement("a");
-    a.href = link.url;
-    a.target = "_blank";
-    a.textContent = `${link.title} (${link.subject} - ${link.subtopic})`;
+// FILTER OPTIONS
+function updateFilters() {
+    subjectFilter.innerHTML = `<option value="all">All Subjects</option>`;
+    subtopicFilter.innerHTML = `<option value="all">All Subtopics</option>`;
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "❌";
-    delBtn.onclick = function() {
-        links.splice(index, 1);
-        localStorage.setItem("links", JSON.stringify(links));
-        fillFilters();
-        displayLinks();
-    };
+    [...new Set(links.map(l => l.subject))].forEach(s =>
+        subjectFilter.innerHTML += `<option value="${s}">${s}</option>`
+    );
 
-    li.appendChild(a);
-    li.appendChild(delBtn);
-    list.appendChild(li);
+    [...new Set(links.map(l => l.subtopic))].forEach(s =>
+        subtopicFilter.innerHTML += `<option value="${s}">${s}</option>`
+    );
+}
+
+function clearInputs() {
+    title.value = "";
+    url.value = "";
+    subject.value = "";
+    subtopic.value = "";
 }
