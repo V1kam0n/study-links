@@ -31,9 +31,9 @@
     <header>
         <h1>📚 Study Links</h1>
         <p>Browse and filter study resources</p>
+        <button onclick="openAdmin()">Admin</button>
     </header>
 
-    <!-- FILTERS -->
     <section class="card">
         <input id="searchInput" placeholder="Search..." oninput="applyFilters()">
 
@@ -46,7 +46,6 @@
         </select>
     </section>
 
-    <!-- LINKS -->
     <section class="card">
         <ul id="list"></ul>
     </section>
@@ -60,7 +59,8 @@
         <h2>Admin Login</h2>
         <input id="adminEmail" type="email" placeholder="Admin email">
         <input id="adminPassword" type="password" placeholder="Password">
-        <button onclick="loginAdmin()">Login</button>
+        <button onclick="loginAdmin()">Sign In</button>
+        <button onclick="closeAdmin()">Cancel</button>
     </section>
 
     <section id="adminPanel" class="card" style="display:none;">

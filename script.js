@@ -1,6 +1,18 @@
 let links = [];
 const ADMIN_EMAIL = "admin@studylinks.com";
 
+/* ---------- UI NAVIGATION ---------- */
+
+function openAdmin() {
+    userUI.style.display = "none";
+    adminUI.style.display = "block";
+}
+
+function closeAdmin() {
+    adminUI.style.display = "none";
+    userUI.style.display = "block";
+}
+
 /* ---------- AUTH ---------- */
 
 function loginAdmin() {
@@ -20,8 +32,6 @@ firebase.auth().onAuthStateChanged(user => {
         loginCard.style.display = "none";
         adminPanel.style.display = "block";
     } else {
-        userUI.style.display = "block";
-        adminUI.style.display = "none";
         loginCard.style.display = "block";
         adminPanel.style.display = "none";
     }
@@ -75,12 +85,10 @@ function renderLinks(data) {
 
     data.forEach(link => {
         const li = document.createElement("li");
-
         const a = document.createElement("a");
         a.href = link.url;
         a.target = "_blank";
         a.textContent = `${link.title} (${link.subject} - ${link.subtopic})`;
-
         li.appendChild(a);
         list.appendChild(li);
     });
