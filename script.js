@@ -1,58 +1,67 @@
 let isAdmin = false;
 let links = [];
 
-// LOGIN (TEMP – DEMO ONLY)
+/* ---------- AUTH ---------- */
+
 function loginAdmin() {
-    const pass = document.getElementById("adminPassword").value;
+    firebase.auth()
+        .signInWithEmailAndPassword(
+            adminEmail.value,
+            adminPassword.value
+        )
+        .catch(err => alert(err.message));
+}
 
-    if (pass === "1234") {
+function logoutAdmin() {
+    firebase.auth().signOut();
+}
+
+firebase.auth().onAuthStateChanged(user => {
+    if (user && user.email === "admin@studylinks.com") {
         isAdmin = true;
-        document.getElementById("loginCard").style.display = "none";
+        loginCard.style.display = "none";
         document.querySelector(".add-section").style.display = "block";
-        alert("Admin mode enabled");
     } else {
-        alert("Wrong password");
+        isAdmin = false;
+        loginCard.style.display = "block";
+        document.querySelector(".add-section").style.display = "none";
     }
-}
+});
 
-// ADD LINK
-function addLink() {
-    if (!isAdmin) return;
+/* ---------- DATABASE ---------- */
 
-    const title = document.getElementById("title").value;
-    const url = document.getElementById("url").value;
-    const subject = document.getElementById("subject").value;
-    const subtopic = document.getElementById("subtopic").value;
-
-    if (!title || !url) return;
-
-    db.collection("links").add({
-        title,
-        url,
-        subject,
-        subtopic,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    clearInputs();
-}
-
-// REALTIME LOAD
-db.collection("links").orderBy("createdAt", "desc")
+db.collection("links")
+  .orderBy("createdAt", "desc")
   .onSnapshot(snapshot => {
       links = [];
       snapshot.forEach(doc => {
           links.push({ id: doc.id, ...doc.data() });
       });
-      displayLinks();
+      applyFilters();
   });
 
-// DISPLAY
-function displayLinks(filtered = links) {
-    const list = document.getElementById("list");
+function addLink() {
+    if (!isAdmin) return;
+
+    if (!title.value || !url.value) return;
+
+    db.collection("links").add({
+        title: title.value,
+        url: url.value,
+        subject: subject.value,
+        subtopic: subtopic.value,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err => alert(err.message));
+
+    title.value = url.value = subject.value = subtopic.value = "";
+}
+
+/* ---------- DISPLAY ---------- */
+
+function displayLinks(data) {
     list.innerHTML = "";
 
-    filtered.forEach(link => {
+    data.forEach(link => {
         const li = document.createElement("li");
 
         const a = document.createElement("a");
@@ -65,32 +74,37 @@ function displayLinks(filtered = links) {
         if (isAdmin) {
             const del = document.createElement("button");
             del.textContent = "❌";
-            del.onclick = () => {
+            del.onclick = () =>
                 db.collection("links").doc(link.id).delete();
-            };
             li.appendChild(del);
         }
 
         list.appendChild(li);
     });
-
-    updateFilters();
 }
 
-// FILTER
-function filterLinks() {
-    let result = links;
-    if (subjectFilter.value !== "all") {
-        result = result.filter(l => l.subject === subjectFilter.value);
-    }
-    if (subtopicFilter.value !== "all") {
-        result = result.filter(l => l.subtopic === subtopicFilter.value);
-    }
-    displayLinks(result);
+/* ---------- SEARCH + FILTER ---------- */
+
+function applyFilters() {
+    const s = subjectFilter.value;
+    const sub = subtopicFilter.value;
+    const q = searchInput.value.toLowerCase();
+
+    const filtered = links.filter(l =>
+        (s === "all" || l.subject === s) &&
+        (sub === "all" || l.subtopic === sub) &&
+        (
+            l.title.toLowerCase().includes(q) ||
+            l.subject.toLowerCase().includes(q) ||
+            l.subtopic.toLowerCase().includes(q)
+        )
+    );
+
+    updateFilterOptions();
+    displayLinks(filtered);
 }
 
-// FILTER OPTIONS
-function updateFilters() {
+function updateFilterOptions() {
     subjectFilter.innerHTML = `<option value="all">All Subjects</option>`;
     subtopicFilter.innerHTML = `<option value="all">All Subtopics</option>`;
 
@@ -101,11 +115,4 @@ function updateFilters() {
     [...new Set(links.map(l => l.subtopic))].forEach(s =>
         subtopicFilter.innerHTML += `<option value="${s}">${s}</option>`
     );
-}
-
-function clearInputs() {
-    title.value = "";
-    url.value = "";
-    subject.value = "";
-    subtopic.value = "";
 }
